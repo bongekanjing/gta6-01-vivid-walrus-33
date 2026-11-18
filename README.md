@@ -9,6 +9,18 @@ invented streets, cars, brands and people. Top-down, drawn entirely with canvas 
 library and no network request. Drive, steal cars, take jobs from a fixer, draw a pistol and outrun a
 five-star wanted level.
 
+## What is in it
+
+- A hand-built city map: a coastline, a grid of invented streets, blocks of buildings, parks and a
+  beach, all drawn with canvas paths.
+- Cars you can steal and drive, with acceleration, steering and a handbrake, plus traffic that
+  follows the roads and other vehicles on them.
+- Jobs from a fixer: talk to him with E, take a mission and complete its objective for cash.
+- A five-star wanted level that rises as you commit crimes and decays when you lay low, with police
+  responding at higher ratings.
+- The whole look is canvas art: gradients, flat fills and simple shapes for people, cars, palm trees
+  and the sky, with no image files at all.
+
 ## Play it
 
 Open `game/index.html` in desktop Chrome, or serve the folder and play in the browser:
