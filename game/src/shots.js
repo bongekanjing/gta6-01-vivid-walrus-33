@@ -3,13 +3,12 @@
 // A shot resets the state, then plays the real simulation forward for a fixed number of 1/60 s
 // steps driven by a scripted input log, so the frame is what the game looks like after a few
 // seconds of that scene. A log entry is {t, action}: '+key' / '-key' hold or release a key from
-// that moment on, 'aim:x,y[,1]' lands the pointer (holding its button when the 1 is there), and any
-// other action is tapped on the frame it falls due. Each scene puts the cast on real road lanes and
-// writes the run's history (tyre marks, wrecks) into the city. Everything follows from the seed.
+// then on, 'aim:x,y[,1]' lands the pointer (holding its button when the 1 is there), and any other
+// action is tapped on the frame it falls due. Each scene puts the cast on real road lanes and
+// writes the run's history (tyre marks, wrecks) into the city; everything follows from the seed.
 //
 // The fake input is the whole of input.js as player.js and missions.js read it. A step runs the
-// modules in main.js's order; stepFn sees each step's events, so a scene can react without leaving
-// this file.
+// modules in main.js's order, and stepFn sees each step's events, so a scene can react to them.
 import { buildCity } from './city.js';
 import { createPlayer, updatePlayer } from './player.js';
 import {
@@ -35,35 +34,30 @@ function pointerFor(x, y, angle) {
   return { x: x + Math.cos(angle) * 440, y: y + Math.sin(angle) * 440 };
 }
 
-function createScript(base) {
+function createScript() {
   const state = {}; // the held-key map player.js reads (space is the handbrake)
-  let held = 0; // bit mask over KEY: what the log holds, plus the base keys the scene holds throughout
+  let held = 0; // bit mask over KEY, held from the step that set it until the step that clears it
   let edges = 0; // one-shot actions for this frame only
   let firing = false; // the pointer stays held down for the rest of the run
-  let shots = 0;
   let log = [];
   let at = 0;
-  let root = 0; // keys the scene holds for the whole run (createScript's argument)
-  for (const name of base || []) root |= 1 << KEY[name];
 
   function apply(entry) {
     const a = entry.action;
-    if (typeof a === 'string' && a.slice(0, 4) === 'aim:') {
+    if (typeof a !== 'string') return;
+    if (a.startsWith('aim:')) {
       const [x, y, down] = a.slice(4).split(',');
-      input.mouse.x = Number(x);
-      input.mouse.y = Number(y);
+      Object.assign(input.mouse, { x: Number(x), y: Number(y) });
       firing = down === '1';
       edges |= bit(ACT, 'fire');
-      return;
-    }
-    if (typeof a === 'string' && (a[0] === '+' || a[0] === '-')) {
+    } else if (a[0] === '+' || a[0] === '-') {
       const k = KEY[a.slice(1)];
       if (k === undefined) return;
       held = a[0] === '+' ? held | (1 << k) : held & ~(1 << k);
       state.space = (held & (1 << KEY.handbrake)) !== 0;
-      return;
+    } else {
+      edges |= bit(ACT, a);
     }
-    edges |= bit(ACT, a);
   }
 
   const input = {
@@ -77,20 +71,13 @@ function createScript(base) {
     },
     run: () => (held & (1 << KEY.run)) !== 0,
     pressed: (action) => (edges & bit(ACT, action)) !== 0,
-    /** main.js clears the edge set once per step, and the pointer's click lasts that one step. */
-    endFrame() {
-      edges = 0;
-      input.mouse.clicked = false;
-    },
+    endFrame() {},
     mouse: { x: FRAME_W * 0.62, y: FRAME_H * 0.34, down: false, clicked: false },
   };
 
   return {
     input,
-    /**
-     * Apply every entry due by `now`. Held keys persist from step to step (a '+up' is a key held
-     * down until a '-up'), so the log reads as one continuous input rather than a per-frame event.
-     */
+    /** Apply every entry due by `now`. Held keys persist, so the log reads as one input, not events. */
     begin(now) {
       while (at < log.length && log[at].t <= now) apply(log[at++]);
       if (firing) {
@@ -98,14 +85,14 @@ function createScript(base) {
         input.mouse.clicked = true;
       }
     },
-    end(events) {
-      if (events & 8) shots += 1; // EVENT_SHOT
-      input.endFrame();
+    /** main.js clears the edge set once per step, and the pointer's click lasts that one step. */
+    end() {
+      edges = 0;
+      input.mouse.clicked = false;
     },
     plan(entries) {
       log = entries.slice().sort((a, b) => a.t - b.t);
       at = 0;
-      held = root;
       return this;
     },
     /** Let go of every held key: a scene that wants the player standing still mid-run. */
@@ -113,9 +100,6 @@ function createScript(base) {
       held = 0;
       state.space = false;
       return this;
-    },
-    get shots() {
-      return shots;
     },
   };
 }
@@ -143,26 +127,25 @@ const angleFor = (axis, dir) => (axis === 'h' ? (dir > 0 ? 0 : Math.PI) : dir > 
 /** A car stopped in a lane, with the fields entities.js and render.js read. */
 function makeCar(city, axis, index, dir, along, kind, colour) {
   const p = lane(city, axis, index, dir, along);
+  const long = axis === 'h';
   return {
-    x: p.x, y: p.y, w: axis === 'h' ? 38 : 20, h: axis === 'h' ? 20 : 38,
-    angle: angleFor(axis, dir), speed: 0, maxSpeed: 220, axis, dir, lane: index,
-    line: axis === 'h' ? p.y : p.x, kind, colour, driver: 'ai', hp: 100,
-    wrecked: false, smokeTimer: 0, brake: 0, stuck: 0, sinceTurn: 0, turnTimer: 99, nextLane: NaN,
+    x: p.x, y: p.y, w: long ? 38 : 20, h: long ? 20 : 38, angle: angleFor(axis, dir),
+    speed: 0, maxSpeed: 220, axis, dir, lane: index, line: long ? p.y : p.x, kind, colour,
+    driver: 'ai', hp: 100, wrecked: false, smokeTimer: 0, brake: 0, stuck: 0,
+    sinceTurn: 0, turnTimer: 99, nextLane: NaN,
   };
 }
 
 /** The player's coupé, already rolling. 290 px/s is 0.6 of its top speed. */
 function playerCar(city, axis, index, dir, along, speed) {
-  return Object.assign(makeCar(city, axis, index, dir, along, 'coupe', '#1b2a4a'), {
-    driver: 'player', maxSpeed: 290, speed, drift: 0,
-  });
+  return Object.assign(makeCar(city, axis, index, dir, along, 'coupe', '#1b2a4a'),
+    { driver: 'player', maxSpeed: 290, speed, drift: 0 });
 }
 
 /** A cruiser in the police's dark livery. */
 function policeCar(city, axis, index, dir, along) {
-  return Object.assign(makeCar(city, axis, index, dir, along, 'sedan', '#1f2633'), {
-    driver: 'cop', maxSpeed: 310, hp: 160,
-  });
+  return Object.assign(makeCar(city, axis, index, dir, along, 'sedan', '#1f2633'),
+    { driver: 'cop', maxSpeed: 310, hp: 160 });
 }
 
 /** The player on foot at (x, y), pistol in hand, magazine full. */
@@ -173,26 +156,23 @@ function standPlayer(player, x, y, angle) {
   });
 }
 
-/** A police unit: the car, the pair in it or out on foot at (x, y) with `hp`, lights on. */
+/** A police unit: the car, the pair in it or out on foot at `at` {x, y, angle, hp}, lights on. */
 function policeUnit(car, at) {
-  const foot = at !== undefined;
-  if (foot && car) car.speed = 0;
-  const officer = foot
-    ? { x: at.x, y: at.y, angle: at.angle, hp: at.hp === undefined ? 80 : at.hp, fireTimer: 0.2, dead: at.hp <= 0 }
-    : { x: car.x + 22, y: car.y - 14, hp: 80, angle: car.angle, fireTimer: 0.9, dead: false };
-  return { car, officer, state: foot ? 'foot' : 'drive', lights: 1 };
+  if (!at) return { car, officer: { x: car.x + 22, y: car.y - 14, hp: 80, angle: car.angle, fireTimer: 0.9, dead: false }, state: 'drive', lights: 1 };
+  car.speed = 0;
+  const hp = at.hp === undefined ? 80 : at.hp;
+  return { car, officer: { x: at.x, y: at.y, angle: at.angle, hp, fireTimer: 0.2, dead: hp <= 0 }, state: 'foot', lights: 1 };
 }
 
-/** Two skid lines from x to x2 along y, `gap` px either side, inside city.js's cap of 400 marks. */
+/** Two skid lines from `from` to `to` along y, `gap` px either side, inside city.js's cap of 400. */
 function layTrail(city, from, to, y, gap) {
   for (let x = from; x < to; x += 24) {
     if (city.marks.length > 396) city.marks.splice(0, city.marks.length - 396);
-    city.marks.push({ x, y: y - gap, x2: x + 22, y2: y - gap, w: 5, life: 1 });
-    city.marks.push({ x, y: y + gap, x2: x + 22, y2: y + gap, w: 5, life: 1 });
+    for (const dy of [-gap, gap]) city.marks.push({ x, y: y + dy, x2: x + 22, y2: y + dy, w: 5, life: 1 });
   }
 }
 
-/** (x, y) pushed clear of any building, ring by ring, for a body of 14 px. */
+/** (x, y) pushed clear of any building or the sea, ring by ring, for a body of 14 px. */
 function clearSpot(city, x, y) {
   const solid = (px, py) => py + 14 >= city.water.y || city.buildings.some(
     (b) => px + 14 > b.x && px - 14 < b.x + b.w && py + 14 > b.y && py - 14 < b.y + b.h,
@@ -201,18 +181,18 @@ function clearSpot(city, x, y) {
   for (let ring = 1; ring <= 6; ring += 1) {
     for (let k = 0; k < 12; k += 1) {
       const a = (k / 12) * Math.PI * 2;
-      const px = x + Math.cos(a) * ring * 20;
-      if (!solid(px, y + Math.sin(a) * ring * 20)) return { x: px, y: y + Math.sin(a) * ring * 20 };
+      const nx = x + Math.cos(a) * ring * 20;
+      const ny = y + Math.sin(a) * ring * 20;
+      if (!solid(nx, ny)) return { x: nx, y: ny };
     }
   }
   return { x, y };
 }
 
-/** The frame's clock, in seconds past 11:40, which the HUD reads as a late-afternoon hour. */
+/** The frame's clock, seconds past 11:40, which the HUD reads as a late-afternoon hour. */
 const CLOCK = 17 * 3600 + 52 * 60 - (11 * 3600 + 40 * 60);
 
-// One step in main.js's order, then a whole scripted run.
-/** One fixed step. Returns the events; calls state.stepFn with them. */
+/** One fixed step in main.js's order. Returns the events; calls state.stepFn with them. */
 function simulate(state, script, now) {
   script.begin(now);
   state.clock += STEP;
@@ -224,7 +204,7 @@ function simulate(state, script, now) {
   events |= updateBullets(state.bullets, STEP, state.city, state.player, state.peds, state.cars);
   updateParticles(state.particles, STEP);
   events |= updateMissions(state.missions, state, STEP);
-  script.end(events);
+  script.end();
   state.steps += 1;
   if (state.stepFn) state.stepFn(events);
   return events;
@@ -232,38 +212,28 @@ function simulate(state, script, now) {
 
 /** Play `seconds` of fixed steps. `after(i, events)` runs between steps and ends the run on false. */
 function play(state, script, seconds, after) {
-  const between = typeof after === 'function' ? after : null;
+  const between = typeof after === 'function' ? after : () => true;
   for (let i = 0; i < Math.round(seconds / STEP); i += 1) {
-    const events = simulate(state, script, i * STEP);
-    if (between && between(i, events) === false) break;
+    if (between(i, simulate(state, script, i * STEP)) === false) break;
   }
   return state;
 }
 
-// ---------------------------------------------------------------------------------------------
-// The scenes: each places the cast, then plays its log through the real rules
-// ---------------------------------------------------------------------------------------------
+// The scenes: each places the cast, then plays its log through the real rules.
 
-/**
- * Start: the title frame. The city runs on its own for five seconds; the player stands at a
- * junction on the avenue, still, which is where the camera sits and what the traffic streams past.
- */
+/** Start: the title frame. The city runs five seconds on its own; the player stands at a junction. */
 function stageStart(state) {
   const city = state.city;
-  const avenue = 21;
   const line = lineNear(city, 'h', city.roadsY[26]);
   state.cars = spawnTraffic(city, state.rng, 46);
   state.peds = spawnPeds(city, state.rng, 64);
-  const at = clearSpot(city, city.roadsX[avenue] + 14, city.roadsY[line] - 30);
-  Object.assign(state.player, { x: at.x, y: at.y, angle: -Math.PI / 2, aim: -Math.PI / 2, money: 0 });
+  const at = clearSpot(city, city.roadsX[21] + 14, city.roadsY[line] - 30);
+  Object.assign(state.player, { x: at.x, y: at.y, angle: -Math.PI / 2, aim: -Math.PI / 2 });
   play(state, createScript().plan([]), 5);
   return { screen: 'title' };
 }
 
-/**
- * Drive: the coupé on an avenue at about 0.6 of its top speed, two stars, one cruiser 300 px up
- * the lane behind, the first job live, traffic all round.
- */
+/** Drive: the coupé at 0.6 of its top speed, two stars, a cruiser 300 px back, the first job live. */
 function stageDrive(state) {
   const city = state.city;
   const avenue = 14;
@@ -294,10 +264,7 @@ function stageDrive(state) {
   return { screen: 'play' };
 }
 
-/**
- * Chase: four stars, the player on foot with the pistol out in a junction, three cruisers boxed
- * round them, two pairs of officers shooting, the third car a wreck with smoke on it.
- */
+/** Chase: four stars, the pistol out in a junction, three cruisers boxed in, two pairs shooting. */
 function stageChase(state) {
   const city = state.city;
   const avenue = 14;
@@ -326,10 +293,7 @@ function stageChase(state) {
   return { screen: 'play' };
 }
 
-/**
- * Mission: the first marker at the pier front. The player walks up to it, Dex's opening page
- * opens, and the frame is taken with the box up, the player standing at the marker.
- */
+/** Mission: the first marker at the pier front; the player walks up and Dex's opening page opens. */
 function stageMission(state) {
   const city = state.city;
   state.peds = spawnPeds(city, state.rng, 52);
@@ -356,14 +320,10 @@ function stageMission(state) {
 
 const SCENES = { start: stageStart, drive: stageDrive, chase: stageChase, mission: stageMission };
 
-// The public entry point.
-
-/**
- * Stage the named scene (start, drive, chase or mission; anything else is start) on `state`, which
+/** Stage the named scene (start, drive, chase or mission; anything else is start) on `state`, which
  * must carry the shared lists {city, player, cars, peds, police, bullets, particles} and may carry
- * `seed` and `audio`. Resets the state, plays the scene's scripted log through the real
- * simulation (calling `stepFn(events)` after every step), calls `renderFn()` once at the end, and
- * returns {screen, steps} for the caller.
+ * `seed` and `audio`. Resets the state, plays the scene's scripted log through the real simulation
+ * (calling `stepFn(events)` after every step), calls `renderFn()` once, and returns {screen, steps}.
  */
 export function stageShot(name, state, stepFn, renderFn) {
   const stage = Object.prototype.hasOwnProperty.call(SCENES, name) ? SCENES[name] : stageStart;
