@@ -70,6 +70,7 @@ export function createInput(canvas) {
     mouse.down = false;
   });
 
+  // Mouse coordinates are canvas-space (0..1280, 0..720), already un-letterboxed and scaled.
   canvas.addEventListener('mousemove', toCanvas);
   canvas.addEventListener('mousedown', (event) => {
     toCanvas(event);

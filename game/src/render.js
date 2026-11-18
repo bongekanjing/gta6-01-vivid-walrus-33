@@ -140,6 +140,7 @@ export function createRenderer(canvas) {
 
   // Follow the car if the player is in one, else the player. Exponential ease (dt-independent);
   // zoom follows speed through a smoothstep so a tap of throttle does not jump the scale.
+  // Camera easing: the zoom follows speed (1.0 walking out to ~0.78 at full tilt).
   function updateCamera(state, dt) {
     const p = state.player || { x: 2688, y: 2688 };
     const car = p.car || null;

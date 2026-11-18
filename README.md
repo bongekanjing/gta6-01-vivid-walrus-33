@@ -20,6 +20,8 @@ five-star wanted level.
   responding at higher ratings.
 - The whole look is canvas art: gradients, flat fills and simple shapes for people, cars, palm trees
   and the sky, with no image files at all.
+- A minimap in the corner that tracks the player, the cars and the job marker, so the grid of
+  streets stays readable at speed.
 - Dialogue with the fixer and his contacts, each speaker in a box with a shape-built portrait drawn
   from the same flat canvas pieces as the rest of the art.
 

@@ -136,6 +136,7 @@ function buildMissions(city) {
   const stage = (text, spot, need, extra) => Object.assign({ text, x: spot.x, y: spot.y, need }, extra);
   const line = (who, text) => ({ who, line: text });
   // The mission list: the jobs chain in order, each one opening only after the one before it closes.
+  // The mission table: the jobs chain, each opening once the one before it is paid out.
   const list = [
     { id: 'pier', title: 'A favour for Dex', reward: 750,
       stages: [stage('Meet Dex Marlow on the pier front at the beach road', S.pier, 'any'), stage('Get in a car and drive to the docks in the south-west', S.docks, 'car')],

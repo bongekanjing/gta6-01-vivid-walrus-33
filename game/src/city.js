@@ -116,6 +116,7 @@ function buildRoads() {
 // and half the carriageway on every side. With a 36 px side street a mid-block cell yields a
 // ~32 px lot and an avenue-adjacent cell a 4 px sliver (which is dropped and reads as plaza), so
 // buildings sit inside {roads + sidewalk} and never spill onto a pavement.
+// Blocks sit between road lines: each rectangle fills one cell of the grid between streets.
 function buildBlocks() {
   const blocks = [];
   for (let row = 0; row < GRID; row += 1) {

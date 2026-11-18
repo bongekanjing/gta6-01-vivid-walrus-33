@@ -134,6 +134,7 @@ function drawMarker(ctx, state, px, py, s, radius, cx, cy) {
 
 // White arrow along the player's facing, at the centre because the map centres on them. World
 // angle 0 is +x and the art points up (-y), hence the quarter-turn.
+// The player arrow painter: north is fixed, so only the arrow turns with the player.
 function drawArrow(ctx, angle) {
   ctx.save();
   ctx.rotate(angle + Math.PI / 2);

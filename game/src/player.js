@@ -194,6 +194,7 @@ function policeHasSight(city, police, x, y) {
   return false;
 }
 
+// Wanted level: heat decays only while no officer has the player in sight.
 function updateWanted(player, city, police, dt) {
   player.spotted = player.wanted > 0 && policeHasSight(city, police, player.x, player.y);
   if (player.wanted <= 0) {

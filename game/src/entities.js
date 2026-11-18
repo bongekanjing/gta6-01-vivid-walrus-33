@@ -809,6 +809,7 @@ function fireBullet(bullets, x, y, angle, speed, from, damage) {
   slot.damage = damage;
 }
 
+// Bullet life is in seconds: it ticks down by dt and the bullet frees at zero.
 export function updateBullets(bullets, dt, city, player, peds, cars) {
   let events = 0;
   if (!bullets || !bullets.length || !(dt > 0)) return events;

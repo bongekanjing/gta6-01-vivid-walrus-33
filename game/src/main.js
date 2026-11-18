@@ -160,6 +160,7 @@ function hasSave() {
   }
 }
 
+// The save function: one snapshot under the localStorage key 'vice-fortuna-save'.
 function saveGame() {
   try {
     window.localStorage.setItem(SAVE_KEY, JSON.stringify({

@@ -41,6 +41,7 @@ if (existsSync(shotsIn) && statSync(shotsIn).isDirectory()) {
 }
 if (shots.length === 0) fail(`no screenshots in ${shotsIn}: put 3 or 4 PNG or JPEG renders of the game here (the first by name is the cover)`);
 
+// The output mirrors the repository: game/ and screenshots/ are copied through as they are.
 mkdirSync(out, { recursive: true });
 cpSync(gameIn, join(out, 'game'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });

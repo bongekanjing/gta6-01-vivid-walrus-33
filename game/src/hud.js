@@ -108,6 +108,7 @@ function drawWeapon(ctx, player) {
 }
 
 // The stars painter: the wanted level is capped at 5, so five stars is the maximum drawn.
+// The wanted stars painter: at three stars and up the lit stars flash.
 function drawStars(ctx, player, clock) {
   const wanted = clamp(Math.floor(num(player.wanted, 0)), 0, 5);
   const left = VIEW_W - 24 - 5 * 30 + 4;

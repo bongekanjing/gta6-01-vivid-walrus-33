@@ -18,7 +18,7 @@ import {
 import { createMissions, updateMissions, currentObjective } from './missions.js';
 import { createRng } from './rng.js';
 
-const STEP = 1 / 60; // the simulation's fixed step, as main.js runs it
+const STEP = 1 / 60; // the run length unit: the simulation's fixed step, as main.js runs it
 const AVENUE_PITCH = 7; // every 7th road line is a 96 px avenue, the rest 36 px streets
 const LANE_KEEP = 0.3; // lane centre as a fraction of the carriageway half width
 const DEFAULT_SEED = 1;

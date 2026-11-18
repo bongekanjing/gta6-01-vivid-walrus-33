@@ -161,6 +161,7 @@ export function createAudio() {
       second.frequency.setValueAtTime(315, a + 0.54);
       second.frequency.linearRampToValueAtTime(300, a + 0.6);
     },
+    // The siren voice: two oscillators, a sine stepped in a rising and falling wail.
     siren(a) {
       // A police two-tone wail: the pitch is stepped up and down across the whole sweep.
       const osc = ctx.createOscillator();
