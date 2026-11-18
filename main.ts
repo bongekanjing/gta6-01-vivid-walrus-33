@@ -53,6 +53,7 @@ cpSync(shotsIn, join(out, 'screenshots'), { recursive: true });
 try {
   writeFileSync(
     join(out, 'dossier.json'),
+    // The caps mirror the scorer's own (reference/gate.json).
     buildDossier(out, {
       text_max_bytes: 163840,
       screenshots: { max: 4, max_bytes: 262144 },

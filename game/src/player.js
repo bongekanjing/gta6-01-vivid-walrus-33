@@ -462,6 +462,7 @@ function nearestCar(cars, x, y, range) {
 // Cars
 // ---------------------------------------------------------------------------------------------
 
+// Get the player into a car: the pickup radius is ENTER_RANGE (70 px from the car's centre).
 function enterCar(player, car, ctx, events) {
   if (!car) return events;
   // Parking a stolen car home is not a theft: only a car nobody is already driving counts.

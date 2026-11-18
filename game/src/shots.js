@@ -318,6 +318,7 @@ function stageMission(state) {
   return { screen: 'play' };
 }
 
+// The scene table: each scene resets the state before it stages its cast and script.
 const SCENES = { start: stageStart, drive: stageDrive, chase: stageChase, mission: stageMission };
 
 /** Stage the named scene (start, drive, chase or mission; anything else is start) on `state`, which

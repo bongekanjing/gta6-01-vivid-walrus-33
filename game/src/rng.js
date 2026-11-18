@@ -12,7 +12,7 @@ function mulberry32(seed) {
   };
 }
 
-// Build a generator object bound to one seed.
+// Build a generator object bound to one seed (mulberry32: a 32-bit state stepping by 0x6d2b79f5).
 export function createRng(seed) {
   const next = mulberry32(seed);
   return {

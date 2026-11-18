@@ -483,6 +483,7 @@ export function createRenderer(canvas) {
   // Buildings. Soft ground shadows for all first, then the slabs. The footprint is the base; the
   // roof is that rect slid away from the city centre, and the connecting strips are the walls.
   // -------------------------------------------------------------------------------------------
+  // The building painter: each footprint's roof offsets toward the city centre by height * ROOF_SLIDE.
   function drawBuildings(state) {
     const buildings = state.city.buildings;
     ctx.fillStyle = C.shadow;

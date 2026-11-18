@@ -90,6 +90,7 @@ export function createAudio() {
 
   // The engine: a low sawtooth and a detuned square through a resonant lowpass, plus a band of
   // noise that rises with speed. It runs continuously; only its levels and pitch move.
+  // The engine voice: one oscillator pair (sawtooth plus a detuned square) on one shared envelope.
   function startEngine() {
     if (engine) return;
     const now = ctx.currentTime;

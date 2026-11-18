@@ -5,7 +5,7 @@
 // simulation has run its steps. A press between two frames is never lost and never counted twice.
 // The pointer is tracked in canvas coordinates so player.js can aim with it.
 export function createInput(canvas) {
-  // Code -> the action name player.js asks about. Modifiers are handled separately.
+  // Code -> the action name player.js asks about. Key map: edge actions below are cleared once per step.
   const KEY_ACTIONS = new Map([
     ['Enter', 'enter'],
     ['KeyF', 'interact'],

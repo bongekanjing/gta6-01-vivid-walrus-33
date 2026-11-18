@@ -408,6 +408,7 @@ function frame(now) {
 
   const screen = state.screen;
   if (screen === SCREEN_PLAY || screen === SCREEN_TITLE) {
+    // The accumulator loop: at most MAX_STEPS (5) steps run per frame, so it never runs more than five.
     accumulator += elapsed;
     let steps = 0;
     while (accumulator >= STEP && steps < MAX_STEPS) {

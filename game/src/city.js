@@ -20,6 +20,7 @@ export const AVENUE_EVERY = 7; // road line indices 0, 7, 14 ... are avenues
 export const AVENUE_W = 96; // carriageway width of an avenue
 export const STREET_W = 36; // carriageway width of a side street (one lane each way)
 export const SIDEWALK = 14; // pavement strip on each side of a carriageway
+// 4800: the south band from here down is beach and then open water, out of bounds on foot.
 export const WATER_Y = SIZE - 6 * CELL; // 4800: the water starts here
 export const BEACH_Y = WATER_Y - 3 * CELL; // 4512: sand from here to the water
 

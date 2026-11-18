@@ -4,6 +4,7 @@
 // is painted once into an offscreen canvas and blitted with a translation; only the marker, the
 // police blips and the arrow are drawn per frame, inside the circle clip.
 
+// Map scale: one map pixel covers WORLD_PER_MAP (12) world pixels in both axes.
 const WORLD_PER_MAP = 12; // 1 map px = 12 world px
 const MAP_RADIUS = 74; // the radius the HUD reserves for us
 const ROAD_LAYER_MAX = 900; // cap on the offscreen layer's edge, so a big city is not a memory hog

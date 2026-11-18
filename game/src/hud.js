@@ -107,6 +107,7 @@ function drawWeapon(ctx, player) {
   if (pistol && num(player.reloading, 0) > 0) label(ctx, 'RELOAD', x + 236, y + 4, 12, C.amber);
 }
 
+// The stars painter: the wanted level is capped at 5, so five stars is the maximum drawn.
 function drawStars(ctx, player, clock) {
   const wanted = clamp(Math.floor(num(player.wanted, 0)), 0, 5);
   const left = VIEW_W - 24 - 5 * 30 + 4;

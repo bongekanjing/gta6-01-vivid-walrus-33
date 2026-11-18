@@ -28,6 +28,7 @@ const BEACH_Y = 4512; // north edge of the sand: nothing walks or drives south o
 const CAR_LONG = 38;
 const CAR_SHORT = 20;
 const BULLET_CAP = 120;
+// The particle pool: PARTICLE_POOL fixed records, reused in place, so it never grows.
 const PARTICLE_POOL = 400;
 
 const COP_SHOTS_AT = 2; // stars at which officers leave the car and open fire
